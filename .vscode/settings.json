@@ -5,6 +5,15 @@
     "idf.openOcdConfigs": [
         "board/esp32s3-builtin.cfg"
     ],
-    "idf.portWin": "COM1",
-    "idf.toolsPathWin": "C:\\esp32\\.espressif"
+    "idf.portWin": "COM10",
+    "idf.toolsPathWin": "C:\\esp32\\.espressif",
+    "files.associations": {
+        "numbers": "c",
+        "ili9341.h": "c",
+        "disp_spi.h": "c"
+    },
+    "idf.customExtraVars": {
+        "IDF_TARGET": "esp32s3"
+    },
+    "idf.flashType": "UART"
 }
