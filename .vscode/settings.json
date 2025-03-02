@@ -10,7 +10,13 @@
     "files.associations": {
         "numbers": "c",
         "ili9341.h": "c",
-        "disp_spi.h": "c"
+        "disp_spi.h": "c",
+        "bitset": "c",
+        "string_view": "c",
+        "regex": "c",
+        "gpio.h": "c",
+        "esp_rom_gpio.h": "c",
+        "spi_master.h": "c"
     },
     "idf.customExtraVars": {
         "IDF_TARGET": "esp32s3"

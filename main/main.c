@@ -4,5 +4,4 @@
 
 void app_main(void)
 {
-    disp_spi_init();
 }

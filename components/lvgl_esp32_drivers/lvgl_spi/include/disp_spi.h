@@ -1,36 +1,44 @@
-#ifndef __DISP_SPI
-#define __DISP_SPI
+#ifndef __DISP_SPI_H
+#define __DISP_SPI_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <inttypes.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_system.h"
-#include "driver/spi_master.h"
-#include "driver/gpio.h"
+#include <stdint.h>
+#include "driver/spi_master.h"  // SPI 相关功能需要
+#include "driver/gpio.h"       // GPIO 配置需要
 
+// SPI 和 GPIO 引脚定义
+#define LCD_SPI_HOST       SPI2_HOST
+#define LCD_SPI_MOSI       35
+#define LCD_SPI_SCLK       32
+#define LCD_SPI_CS         34
+#define LCD_SPI_DC         33
+#define LCD_SPI_RST        31
+#define LCD_BK_LIGHT_ON_LEVEL 0
+#define PARALLEL_LINES     16
 
-#define LCD_SPI_HOST							SPI2_HOST
+// SPI 发送标志枚举
+typedef enum {
+    DISP_SPI_SEND_QUEUED        = 0x00000000,
+    DISP_SPI_SEND_POLLING       = 0x00000001,
+    DISP_SPI_SEND_SYNCHRONOUS   = 0x00000002,
+    DISP_SPI_SIGNAL_FLUSH       = 0x00000004,
+    DISP_SPI_RECEIVE            = 0x00000008,
+    DISP_SPI_ADDRESS_8          = 0x00000040,
+    DISP_SPI_ADDRESS_16         = 0x00000080,
+    DISP_SPI_ADDRESS_24         = 0x00000100,
+    DISP_SPI_ADDRESS_32         = 0x00000200,
+    DISP_SPI_MODE_DIO           = 0x00000400,
+    DISP_SPI_MODE_QIO           = 0x00000800,
+    DISP_SPI_MODE_DIOQIO_ADDR   = 0x00001000,
+    DISP_SPI_VARIABLE_DUMMY     = 0x00002000,
+} disp_spi_send_flag_t;
 
-#define LCD_SPI_MISO							GPIO_NUM_12  	
-#define LCD_SPI_MOSI							GPIO_NUM_13	
-#define LCD_SPI_SCLK							GPIO_NUM_14	
-#define LCD_SPI_CS							    GPIO_NUM_15		
+// 全局 SPI 设备句柄
+extern spi_device_handle_t disp_spi_handle;
 
-#define LCD_SPI_DC                             21
-#define LCD_SPI_RST                            18
-#define LCD_SPI_BCKL                           5
+// 函数声明
+void disp_spi_init_config(void);
+void disp_spi_send_data(uint8_t *data, size_t length);
+void disp_spi_send_colors(uint8_t *data, size_t length);
+void disp_wait_for_pending_transactions(void);
 
-#define LCD_BK_LIGHT_ON_LEVEL					0
-
-#define PARALLEL_LINES                          16
-
-void disp_spi_init_config(spi_device_handle_t handle);
-void disp_spi_pre_transfer_callback(spi_transaction_t *t);
-
-
-extern void disp_spi_init(void);
-
-#endif  //__DISP_SPI
+#endif  // __DISP_SPI_H
