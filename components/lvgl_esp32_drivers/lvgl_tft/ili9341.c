@@ -153,7 +153,7 @@ static void ili9341_send_color(void *data, uint16_t length) {
  * @param area 刷新区域
  * @param color_map 颜色数据
  */
-void ili9341_flush(lv_display_t *drv, const lv_area_t *area, lv_color_t *color_map) {
+void ili9341_flush(lv_display_t *drv, const lv_area_t *area, unsigned char *color_map) {
     uint8_t data[4];
 
     // 设置列地址
