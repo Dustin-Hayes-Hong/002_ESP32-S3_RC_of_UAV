@@ -2,10 +2,9 @@
 #define __DISP_SPI_H
 
 #include <stdint.h>
-#include "driver/spi_master.h"  // SPI 相关功能需要
-#include "driver/gpio.h"       // GPIO 配置需要
+#include "driver/spi_master.h"
+#include "driver/gpio.h"
 
-// SPI 和 GPIO 引脚定义
 #define LCD_SPI_HOST       SPI2_HOST
 #define LCD_SPI_MOSI       35
 #define LCD_SPI_SCLK       32
@@ -15,7 +14,6 @@
 #define LCD_BK_LIGHT_ON_LEVEL 0
 #define PARALLEL_LINES     16
 
-// SPI 发送标志枚举
 typedef enum {
     DISP_SPI_SEND_QUEUED        = 0x00000000,
     DISP_SPI_SEND_POLLING       = 0x00000001,
@@ -32,13 +30,11 @@ typedef enum {
     DISP_SPI_VARIABLE_DUMMY     = 0x00002000,
 } disp_spi_send_flag_t;
 
-// 全局 SPI 设备句柄
 extern spi_device_handle_t disp_spi_handle;
 
-// 函数声明
 void disp_spi_init_config(void);
 void disp_spi_send_data(uint8_t *data, size_t length);
 void disp_spi_send_colors(uint8_t *data, size_t length);
 void disp_wait_for_pending_transactions(void);
 
-#endif  // __DISP_SPI_H
+#endif /* __DISP_SPI_H */
