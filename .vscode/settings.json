@@ -25,7 +25,8 @@
         "task.h": "c",
         "lv_refr_private.h": "c",
         "lvgl.h": "c",
-        "lv_refr.h": "c"
+        "lv_refr.h": "c",
+        "lv_demos.h": "c"
     },
     "idf.customExtraVars": {
         "IDF_TARGET": "esp32s3"

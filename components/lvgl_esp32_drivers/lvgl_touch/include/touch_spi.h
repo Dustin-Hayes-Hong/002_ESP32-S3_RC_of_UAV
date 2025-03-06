@@ -6,10 +6,10 @@
 
 // 触摸屏SPI配置宏
 #define TP_SPI_HOST             SPI3_HOST       // SPI主机设备（通常为SPI3）
-#define SPI_TOUCH_CLOCK_SPEED_HZ (1 * 1000 * 1000) // SPI时钟频率（2MHz）
-#define SPI_TOUCH_SPI_MODE      1               // SPI模式（0或1）
-#define TP_SPI_CS               12              // 片选引脚
+#define SPI_TOUCH_CLOCK_SPEED_HZ (2 * 1000 * 1000) // SPI时钟频率（2MHz）
+#define SPI_TOUCH_SPI_MODE      0               // SPI模式（0或1）
 #define TP_SPI_CLK              11              // 时钟引脚
+#define TP_SPI_CS               12              // 片选引脚
 #define TP_SPI_MOSI             13              // 主输出从输入引脚
 #define TP_SPI_MISO             14              // 主输入从输出引脚
 #define TP_SPI_IRQ              21              // 中断引脚

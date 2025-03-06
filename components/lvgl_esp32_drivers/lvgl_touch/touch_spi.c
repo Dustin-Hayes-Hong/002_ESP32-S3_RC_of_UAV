@@ -72,7 +72,7 @@ void tp_spi_add_device(spi_host_device_t host)
         .command_bits = 8,                         // 命令位数
         .address_bits = 0,                         // 无地址位
         .dummy_bits = 0,                           // 无哑位
-        .flags =  SPI_DEVICE_HALFDUPLEX | SPI_DEVICE_NO_DUMMY, // 无哑位
+        .flags =  SPI_DEVICE_NO_DUMMY, // 无哑位
     };
 
     tp_spi_add_device_config(host, &devcfg);

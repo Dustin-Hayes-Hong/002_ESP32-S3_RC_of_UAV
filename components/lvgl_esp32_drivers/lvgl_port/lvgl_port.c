@@ -7,9 +7,6 @@
 
 #define TAG "LVGL_PORT" // 日志标签
 
-#define LCD_WIDTH  320  // LCD宽度
-#define LCD_HEIGHT 240  // LCD高度
-
 static lv_display_t *disp_drv; // 显示驱动实例
 
 // 函数声明
@@ -40,7 +37,7 @@ static void lv_disp_init(void)
     static lv_color_t disp_buf1[DISP_BUF_SIZE];    	//创建第一个10行的显示缓冲区
 	static lv_color_t disp_buf2[DISP_BUF_SIZE];    	//创建第二个10行的显示缓冲区
 
-    disp_drv = lv_display_create(LCD_WIDTH, LCD_HEIGHT);
+    disp_drv = lv_display_create(LV_HOR_RES_MAX, LV_VER_RES_MAX);
 
     lv_display_set_flush_cb(disp_drv, disp_flush);
     lv_display_set_buffers(disp_drv, disp_buf1, disp_buf2, DISP_BUF_SIZE, LV_DISPLAY_RENDER_MODE_PARTIAL);
@@ -129,8 +126,6 @@ void lv_port_init(void)
 
     lv_disp_init();
     lv_indev_init();
-    tp_spi_add_device(TP_SPI_HOST);
-    xpt2046_init();
     lv_tick_init();
 
     ESP_LOGI(TAG, "LVGL移植初始化全部完成");

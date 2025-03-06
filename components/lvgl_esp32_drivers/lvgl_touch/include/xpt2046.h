@@ -9,7 +9,7 @@
 #define XPT2046_IRQ             TP_SPI_IRQ      // 中断引脚（IRQ）
 #define XPT2046_AVG             4       // 坐标平均采样次数
 #define XPT2046_X_MIN           200     // X轴最小原始值
-#define XPT2046_Y_MIN           200     // Y轴最小原始值
+#define XPT2046_Y_MIN           120     // Y轴最小原始值
 #define XPT2046_X_MAX           1900    // X轴最大原始值
 #define XPT2046_Y_MAX           1900    // Y轴最大原始值
 #define XPT2046_X_INV           0       // 是否反转X轴（0:否, 1:是）

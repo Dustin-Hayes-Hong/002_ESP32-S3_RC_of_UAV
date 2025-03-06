@@ -86,7 +86,7 @@ bool xpt2046_read(lv_indev_t *drv, lv_indev_data_t *data)
         // 规范化坐标（右移4位，去除低位噪声）
         x = x >> 4;
         y = y >> 4;
-        ESP_LOGD(TAG, "规范化坐标: P_norm(%d, %d)", x, y);
+        ESP_LOGI(TAG, "规范化坐标: P_norm(%d, %d)", x, y);
 
         // 校正和平均处理
         xpt2046_corr(&x, &y);
