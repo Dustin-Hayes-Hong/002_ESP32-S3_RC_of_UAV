@@ -7,8 +7,8 @@
 
 #define TAG "LVGL_PORT" // 日志标签
 
-#define LCD_WIDTH  240  // LCD宽度
-#define LCD_HEIGHT 280  // LCD高度
+#define LCD_WIDTH  320  // LCD宽度
+#define LCD_HEIGHT 240  // LCD高度
 
 static lv_display_t *disp_drv; // 显示驱动实例
 
@@ -37,20 +37,14 @@ static void disp_flush(lv_display_t *disp_drv, const lv_area_t *area, unsigned c
  */
 static void lv_disp_init(void)
 {
-    const size_t disp_buf_size = LCD_WIDTH * (LCD_HEIGHT / 7); // 计算显示缓冲区大小
-
-    lv_color_t *disp_buf1 = heap_caps_malloc(disp_buf_size * sizeof(lv_color_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
-    lv_color_t *disp_buf2 = heap_caps_malloc(disp_buf_size * sizeof(lv_color_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
-    
-    if (!disp_buf1 || !disp_buf2) {
-        ESP_LOGE(TAG, "显示缓冲区分配失败！");
-        return;
-    }
+    static lv_color_t disp_buf1[DISP_BUF_SIZE];    	//创建第一个10行的显示缓冲区
+	static lv_color_t disp_buf2[DISP_BUF_SIZE];    	//创建第二个10行的显示缓冲区
 
     disp_drv = lv_display_create(LCD_WIDTH, LCD_HEIGHT);
+
     lv_display_set_flush_cb(disp_drv, disp_flush);
-    lv_display_set_buffers(disp_drv, disp_buf1, disp_buf2, disp_buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
-    ESP_LOGI(TAG, "显示驱动初始化完成，缓冲区大小: %d bytes", (int)disp_buf_size * sizeof(lv_color_t));
+    lv_display_set_buffers(disp_drv, disp_buf1, disp_buf2, DISP_BUF_SIZE, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    ESP_LOGI(TAG, "显示驱动初始化完成");
 }
 
 /**
@@ -121,17 +115,22 @@ void lv_port_init(void)
     lv_init();
     ESP_LOGI(TAG, "LVGL核心初始化完成");
 
-    disp_spi_init_config();
-    ESP_LOGI(TAG, "SPI总线初始化完成");
+    disp_spi_init();
+    ESP_LOGI(TAG, "显示SPI总线初始化完成");
 
     ili9341_init();
     ESP_LOGI(TAG, "ILI9341显示屏初始化完成");
+
+    tp_spi_init();
+    ESP_LOGI(TAG, "触摸SPI总线初始化完成");
 
     xpt2046_init();
     ESP_LOGI(TAG, "XPT2046触摸屏初始化完成");
 
     lv_disp_init();
     lv_indev_init();
+    tp_spi_add_device(TP_SPI_HOST);
+    xpt2046_init();
     lv_tick_init();
 
     ESP_LOGI(TAG, "LVGL移植初始化全部完成");

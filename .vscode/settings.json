@@ -17,7 +17,15 @@
         "gpio.h": "c",
         "esp_rom_gpio.h": "c",
         "spi_master.h": "c",
-        "freertos.h": "c"
+        "freertos.h": "c",
+        "lvgl_port.h": "c",
+        "xpt2046.h": "c",
+        "stdint.h": "c",
+        "touch_spi.h": "c",
+        "task.h": "c",
+        "lv_refr_private.h": "c",
+        "lvgl.h": "c",
+        "lv_refr.h": "c"
     },
     "idf.customExtraVars": {
         "IDF_TARGET": "esp32s3"
