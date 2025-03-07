@@ -166,8 +166,8 @@ static void xpt2046_corr(int16_t *x, int16_t *y)
     *y = (*y > XPT2046_Y_MIN) ? (*y - XPT2046_Y_MIN) : 0;
 
     // 映射到显示分辨率
-    *x = (int16_t)((int32_t)(*x) * LV_HOR_RES) / (XPT2046_X_MAX - XPT2046_X_MIN);
-    *y = (int16_t)((int32_t)(*y) * LV_VER_RES) / (XPT2046_Y_MAX - XPT2046_Y_MIN);
+    *x = (uint32_t)((uint32_t)(*x) * LV_HOR_RES) / (XPT2046_X_MAX - XPT2046_X_MIN);
+    *y = (uint32_t)((uint32_t)(*y) * LV_VER_RES) / (XPT2046_Y_MAX - XPT2046_Y_MIN);
 
 #if XPT2046_X_INV != 0
     *x = LV_HOR_RES - *x;  // 反转X轴
