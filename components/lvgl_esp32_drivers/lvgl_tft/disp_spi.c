@@ -11,25 +11,8 @@
 static const char *TAG = "DISP_SPI";
 
 // 全局变量
-static spi_host_device_t spi_host;                // SPI主机设备
 static spi_device_handle_t spi;                   // SPI设备句柄
 static QueueHandle_t TransactionPool = NULL;      // 事务池队列
-static transaction_cb_t chained_post_cb;          // 链式后回调函数
-
-// 函数声明
-static void disp_spi_pre_transfer_callback(spi_transaction_t *t);
-static void disp_spi_transaction(const uint8_t *data, size_t length, disp_spi_send_flag_t flags,
-                                 uint8_t *out, uint64_t addr, uint8_t dummy_bits);
-
-/**
- * @brief SPI传输前回调函数，用于设置DC引脚电平
- * @param t SPI事务结构体指针
- */
-static void disp_spi_pre_transfer_callback(spi_transaction_t *t)
-{
-    int dc = (int)t->user;                        // 从用户数据中获取DC值
-    gpio_set_level(LCD_SPI_DC, dc);              // 设置DC引脚电平
-}
 
 /**
  * @brief 添加SPI设备配置
@@ -38,9 +21,6 @@ static void disp_spi_pre_transfer_callback(spi_transaction_t *t)
  */
 void disp_spi_add_device_config(spi_host_device_t host, spi_device_interface_config_t *devcfg)
 {
-    spi_host = host;                              // 保存主机设备
-    chained_post_cb = devcfg->post_cb;            // 保存原始后回调
-    devcfg->post_cb = disp_spi_pre_transfer_callback; // 设置前回调
     esp_err_t ret = spi_bus_add_device(host, devcfg, &spi); // 添加设备
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "SPI设备添加失败: %s", esp_err_to_name(ret));
@@ -81,7 +61,7 @@ void disp_spi_init(void)
         .mode = 0,                               // SPI模式0
         .spics_io_num = LCD_SPI_CS,              // 片选引脚
         .queue_size = SPI_TRANSACTION_POOL_SIZE, // 队列大小
-        .pre_cb = disp_spi_pre_transfer_callback, // 前回调函数
+        .pre_cb = NULL, // 前回调函数
     };
 
     disp_spi_add_device_config(LCD_SPI_HOST, (spi_device_interface_config_t *)&dev_cfg);
