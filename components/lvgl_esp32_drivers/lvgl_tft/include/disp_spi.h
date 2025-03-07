@@ -19,11 +19,11 @@
 // SPI主机和引脚配置
 #define LCD_SPI_HOST       SPI2_HOST      // SPI主机设备，通常为SPI2或SPI3
 #define LCD_SPI_MOSI       42             // SPI主输出从输入引脚
-#define LCD_SPI_SCLK       39             // SPI时钟引脚
 #define LCD_SPI_CS         41             // SPI片选引脚
 #define LCD_SPI_DC         40             // 数据/命令控制引脚
+#define LCD_SPI_SCLK       39             // SPI时钟引脚
 #define LCD_SPI_RST        38             // 显示屏复位引脚
-#define LCD_BK_LIGHT_ON_LEVEL 0           // 背光开启电平 (0或1)
+#define LCD_SPI_MODE       0              // SPI模式0
 #define PARALLEL_LINES     16             // 并行传输的行数，用于缓冲区计算
 
 // SPI传输标志枚举，定义不同的传输模式和选项
