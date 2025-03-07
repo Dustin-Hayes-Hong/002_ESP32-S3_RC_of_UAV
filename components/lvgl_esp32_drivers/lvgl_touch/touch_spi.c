@@ -42,21 +42,6 @@ void tp_spi_init(void)
 }
 
 /**
- * @brief 配置并添加SPI设备
- * @param host SPI主机设备
- * @param devcfg SPI设备接口配置结构体指针
- */
-void tp_spi_add_device_config(spi_host_device_t host, spi_device_interface_config_t *devcfg)
-{
-    esp_err_t ret = spi_bus_add_device(host, devcfg, &spi);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "添加SPI设备失败: %s", esp_err_to_name(ret));
-        return;
-    }
-    ESP_LOGI(TAG, "SPI设备添加成功");
-}
-
-/**
  * @brief 添加触摸屏SPI设备
  * @param host SPI主机设备
  */
@@ -75,7 +60,7 @@ void tp_spi_add_device(spi_host_device_t host)
         .flags =  SPI_DEVICE_NO_DUMMY, // 无哑位
     };
 
-    tp_spi_add_device_config(host, &devcfg);
+    spi_bus_add_device(host, &devcfg, &spi);
     ESP_LOGI(TAG, "触摸屏SPI设备初始化完成");
 }
 

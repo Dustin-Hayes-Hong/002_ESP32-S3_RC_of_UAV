@@ -15,20 +15,6 @@ static spi_device_handle_t spi;                   // SPI设备句柄
 static QueueHandle_t TransactionPool = NULL;      // 事务池队列
 
 /**
- * @brief 添加SPI设备配置
- * @param host SPI主机设备
- * @param devcfg SPI设备接口配置结构体指针
- */
-void disp_spi_add_device_config(spi_host_device_t host, spi_device_interface_config_t *devcfg)
-{
-    esp_err_t ret = spi_bus_add_device(host, devcfg, &spi); // 添加设备
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "SPI设备添加失败: %s", esp_err_to_name(ret));
-    }
-    assert(ret == ESP_OK);                        // 确保添加成功
-}
-
-/**
  * @brief 初始化SPI总线和设备
  */
 void disp_spi_init(void)
@@ -56,15 +42,15 @@ void disp_spi_init(void)
 
     ESP_LOGI(TAG, "添加SPI设备...");
     // SPI设备配置
-    static const spi_device_interface_config_t dev_cfg = {
-        .clock_speed_hz = 40 * 1000 * 1000,     // 时钟频率40MHz
-        .mode = 0,                               // SPI模式0
+    static spi_device_interface_config_t dev_cfg = {
+        .clock_speed_hz = 20 * 1000 * 1000,     // 时钟频率40MHz
+        .mode = LCD_SPI_MODE,                               // SPI模式0
         .spics_io_num = LCD_SPI_CS,              // 片选引脚
         .queue_size = SPI_TRANSACTION_POOL_SIZE, // 队列大小
         .pre_cb = NULL, // 前回调函数
     };
 
-    disp_spi_add_device_config(LCD_SPI_HOST, (spi_device_interface_config_t *)&dev_cfg);
+    spi_bus_add_device(LCD_SPI_HOST,&dev_cfg,&spi);
 
     // 创建事务池
     TransactionPool = xQueueCreate(SPI_TRANSACTION_POOL_SIZE, sizeof(spi_transaction_ext_t *));

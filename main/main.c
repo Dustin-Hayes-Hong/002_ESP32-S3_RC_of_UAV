@@ -19,16 +19,21 @@ static void lvgl_task(void *arg)
 lv_obj_t* home_page = NULL;
 lv_obj_t *status_bar = NULL;
 
-void LVGL_picture_establish(void){//创建画面
-    /*Change the active screen's background color*/
-    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x003a57), LV_PART_MAIN);
+void LVGL_picture_establish(void) {
 
-    /*Create a white label, set its text and align it to the center*/
-    lv_obj_t * label = lv_label_create(lv_screen_active());
+    // 设置屏幕背景颜色
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x003a57), LV_PART_MAIN);
+    lv_obj_invalidate(lv_screen_active()); // 标记整个屏幕为脏区域
+
+    // 创建并配置标签
+    lv_obj_t *label = lv_label_create(lv_screen_active());
     lv_label_set_text(label, "Hello world");
-    lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0xffffff), LV_PART_MAIN);
+    lv_obj_set_style_text_color(label, lv_color_hex(0xffffff), LV_PART_MAIN); // 标签颜色应作用于 label 而非屏幕
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
-    
+
+    // 强制刷新
+    lv_refr_now(NULL);
+    ESP_LOGI("LVGL", "Screen refreshed");
 }
 
 void app_main(void)

@@ -20,13 +20,6 @@
 void tp_spi_init(void);
 
 /**
- * @brief 配置并添加SPI设备
- * @param host SPI主机设备
- * @param devcfg SPI设备接口配置结构体指针
- */
-void tp_spi_add_device_config(spi_host_device_t host, spi_device_interface_config_t *devcfg);
-
-/**
  * @brief 添加触摸屏SPI设备
  * @param host SPI主机设备
  */

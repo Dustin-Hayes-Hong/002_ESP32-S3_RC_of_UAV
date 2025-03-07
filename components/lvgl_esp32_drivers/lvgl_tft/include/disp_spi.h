@@ -11,8 +11,8 @@
 #define SPI_TRANSACTION_POOL_RESERVE (SPI_TRANSACTION_POOL_SIZE / SPI_TRANSACTION_POOL_RESERVE_PERCENTAGE)
 
 // 显示分辨率和缓冲区配置
-#define LV_HOR_RES_MAX (240)                      // 水平最大分辨率
-#define LV_VER_RES_MAX (320)                      // 垂直最大分辨率
+#define LV_HOR_RES_MAX (320)                      // 水平最大分辨率
+#define LV_VER_RES_MAX (240)                      // 垂直最大分辨率
 #define DISP_BUF_SIZE  (LV_HOR_RES_MAX * 40)      // 显示缓冲区大小
 #define SPI_BUS_MAX_TRANSFER_SZ (DISP_BUF_SIZE * 2) // SPI最大传输大小
 
@@ -24,7 +24,6 @@
 #define LCD_SPI_SCLK       39             // SPI时钟引脚
 #define LCD_SPI_RST        38             // 显示屏复位引脚
 #define LCD_SPI_MODE       0              // SPI模式0
-#define PARALLEL_LINES     16             // 并行传输的行数，用于缓冲区计算
 
 // SPI传输标志枚举，定义不同的传输模式和选项
 typedef enum {
@@ -42,9 +41,6 @@ typedef enum {
     DISP_SPI_MODE_DIOQIO_ADDR   = 0x00001000,  // DIO/QIO模式下的地址
     DISP_SPI_VARIABLE_DUMMY     = 0x00002000,  // 可变哑位
 } disp_spi_send_flag_t;
-
-// 全局SPI设备句柄声明
-extern spi_device_handle_t disp_spi_handle;
 
 // 函数声明
 /**
