@@ -43,11 +43,13 @@ void disp_spi_init(void)
     ESP_LOGI(TAG, "添加SPI设备...");
     // SPI设备配置
     static spi_device_interface_config_t dev_cfg = {
-        .clock_speed_hz = 20 * 1000 * 1000,     // 时钟频率40MHz
+        .clock_speed_hz = 40 * 1000 * 1000,     // 时钟频率40MHz
         .mode = LCD_SPI_MODE,                               // SPI模式0
         .spics_io_num = LCD_SPI_CS,              // 片选引脚
         .queue_size = SPI_TRANSACTION_POOL_SIZE, // 队列大小
-        .pre_cb = NULL, // 前回调函数
+        .pre_cb = NULL,
+        .post_cb= NULL,
+        .flags = SPI_DEVICE_NO_DUMMY | SPI_DEVICE_HALFDUPLEX,
     };
 
     spi_bus_add_device(LCD_SPI_HOST,&dev_cfg,&spi);
@@ -85,6 +87,7 @@ void disp_wait_for_pending_transactions(void)
     }
 }
 
+#define DISP_SPI_HALF_DUPLEX
 /**
  * @brief 执行SPI数据传输
  * @param data 发送数据缓冲区
@@ -94,69 +97,96 @@ void disp_wait_for_pending_transactions(void)
  * @param addr 地址值（可选）
  * @param dummy_bits 哑位数（可选）
  */
-static void disp_spi_transaction(const uint8_t *data, size_t length, disp_spi_send_flag_t flags,
-                                 uint8_t *out, uint64_t addr, uint8_t dummy_bits)
+void disp_spi_transaction(const uint8_t *data, size_t length,
+    disp_spi_send_flag_t flags, uint8_t *out,
+    uint64_t addr, uint8_t dummy_bits)
 {
-    if (length == 0) return;                     // 空数据直接返回
+    if (0 == length) {
+        return;
+    }
 
-    // 初始化事务结构体
-    spi_transaction_ext_t t = {
-        .base = {
-            .length = length * 8,               // 长度以位为单位
-            .tx_buffer = (length <= 4 && data) ? NULL : data, // 小数据使用tx_data
-            .flags = (length <= 4 && data) ? SPI_TRANS_USE_TXDATA : 0, // 小数据标志
-            .user = (void *)flags,              // 用户数据保存标志
-        },
-    };
+    spi_transaction_ext_t t = {0};
 
-    if (t.base.flags & SPI_TRANS_USE_TXDATA) {
-        memcpy(t.base.tx_data, data, length);   // 复制小数据到tx_data
+    /* transaction length is in bits */
+    t.base.length = length * 8;
+
+    if (length <= 4 && data != NULL) {
+        t.base.flags = SPI_TRANS_USE_TXDATA;
+        memcpy(t.base.tx_data, data, length);
+    } else {
+        t.base.tx_buffer = data;
     }
 
     if (flags & DISP_SPI_RECEIVE) {
-        t.base.rx_buffer = out;                 // 设置接收缓冲区
-        t.base.rxlength = t.base.length;        // 接收长度
+        assert(out != NULL && (flags & (DISP_SPI_SEND_POLLING | DISP_SPI_SEND_SYNCHRONOUS)));
+        t.base.rx_buffer = out;
+
+#if defined(DISP_SPI_HALF_DUPLEX)
+		t.base.rxlength = t.base.length;
+		t.base.length = 0;	/* no MOSI phase in half-duplex reads */
+#else
+		t.base.rxlength = 0; /* in full-duplex mode, zero means same as tx length */
+#endif
     }
 
-    if (flags & (DISP_SPI_ADDRESS_8 | DISP_SPI_ADDRESS_16 | DISP_SPI_ADDRESS_24 | DISP_SPI_ADDRESS_32)) {
-        t.address_bits = (flags & DISP_SPI_ADDRESS_8) ? 8 :
-                         (flags & DISP_SPI_ADDRESS_16) ? 16 :
-                         (flags & DISP_SPI_ADDRESS_24) ? 24 : 32; // 设置地址位数
-        t.base.addr = addr;                     // 设置地址
-        t.base.flags |= SPI_TRANS_VARIABLE_ADDR; // 可变地址标志
+    if (flags & DISP_SPI_ADDRESS_8) {
+        t.address_bits = 8;
+    } else if (flags & DISP_SPI_ADDRESS_16) {
+        t.address_bits = 16;
+    } else if (flags & DISP_SPI_ADDRESS_24) {
+        t.address_bits = 24;
+    } else if (flags & DISP_SPI_ADDRESS_32) {
+        t.address_bits = 32;
+    }
+    if (t.address_bits) {
+        t.base.addr = addr;
+        t.base.flags |= SPI_TRANS_VARIABLE_ADDR;
     }
 
-    if (flags & DISP_SPI_VARIABLE_DUMMY) {
-        t.dummy_bits = dummy_bits;              // 设置哑位
-        t.base.flags |= SPI_TRANS_VARIABLE_DUMMY; // 可变哑位标志
-    }
+#if defined(DISP_SPI_HALF_DUPLEX)
+	if (flags & DISP_SPI_MODE_DIO) {
+		t.base.flags |= SPI_TRANS_MODE_DIO;
+	} else if (flags & DISP_SPI_MODE_QIO) {
+		t.base.flags |= SPI_TRANS_MODE_QIO;
+	}
 
-    // 根据标志选择传输模式
+	if (flags & DISP_SPI_MODE_DIOQIO_ADDR) {
+		t.base.flags |= SPI_TRANS_MODE_DIOQIO_ADDR;
+	}
+
+	if ((flags & DISP_SPI_VARIABLE_DUMMY) && dummy_bits) {
+		t.dummy_bits = dummy_bits;
+		t.base.flags |= SPI_TRANS_VARIABLE_DUMMY;
+	}
+#endif
+
+    /* Save flags for pre/post transaction processing */
+    t.base.user = (void *) flags;
+
+    /* Poll/Complete/Queue transaction */
     if (flags & DISP_SPI_SEND_POLLING) {
-        disp_wait_for_pending_transactions();   // 等待挂起事务
-        spi_device_polling_transmit(spi, (spi_transaction_t *)&t);
+		disp_wait_for_pending_transactions();	/* before polling, all previous pending transactions need to be serviced */
+        spi_device_polling_transmit(spi, (spi_transaction_t *) &t);
     } else if (flags & DISP_SPI_SEND_SYNCHRONOUS) {
-        disp_wait_for_pending_transactions();   // 等待挂起事务
-        spi_device_transmit(spi, (spi_transaction_t *)&t);
+		disp_wait_for_pending_transactions();	/* before synchronous queueing, all previous pending transactions need to be serviced */
+        spi_device_transmit(spi, (spi_transaction_t *) &t);
     } else {
-        // 队列模式传输
-        if (uxQueueMessagesWaiting(TransactionPool) == 0) {
-            spi_transaction_t *presult;
-            while (uxQueueMessagesWaiting(TransactionPool) < SPI_TRANSACTION_POOL_RESERVE) {
-                if (spi_device_get_trans_result(spi, &presult, 1) == ESP_OK) {
-                    xQueueSend(TransactionPool, &presult, portMAX_DELAY);
-                }
-            }
-        }
-        spi_transaction_ext_t *pTransaction;
-        if (xQueueReceive(TransactionPool, &pTransaction, portMAX_DELAY) != pdTRUE) {
-            ESP_LOGE(TAG, "从事务池获取事务失败");
-            return;
-        }
-        *pTransaction = t;
-        if (spi_device_queue_trans(spi, (spi_transaction_t *)pTransaction, portMAX_DELAY) != ESP_OK) {
-            xQueueSend(TransactionPool, &pTransaction, portMAX_DELAY); // 失败时归还事务
-            ESP_LOGE(TAG, "SPI事务队列传输失败");
+		
+		/* if necessary, ensure we can queue new transactions by servicing some previous transactions */
+		if(uxQueueMessagesWaiting(TransactionPool) == 0) {
+			spi_transaction_t *presult;
+			while(uxQueueMessagesWaiting(TransactionPool) < SPI_TRANSACTION_POOL_RESERVE) {
+				if (spi_device_get_trans_result(spi, &presult, 1) == ESP_OK) {
+					xQueueSend(TransactionPool, &presult, portMAX_DELAY);	/* back to the pool to be reused */
+				}
+			}
+		}
+
+		spi_transaction_ext_t *pTransaction = NULL;
+		xQueueReceive(TransactionPool, &pTransaction, portMAX_DELAY);
+        memcpy(pTransaction, &t, sizeof(t));
+        if (spi_device_queue_trans(spi, (spi_transaction_t *) pTransaction, portMAX_DELAY) != ESP_OK) {
+			xQueueSend(TransactionPool, &pTransaction, portMAX_DELAY);	/* send failed transaction back to the pool to be reused */
         }
     }
 }
